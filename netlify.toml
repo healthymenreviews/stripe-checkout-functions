@@ -1,0 +1,8 @@
+[build]
+  command = ""  # Désactive la commande de build (comme rollup ou npm run build)
+  functions = "netlify/functions"  # Chemin vers tes fonctions serverless
+
+[functions]
+  node_bundler = "esbuild"  # Plus rapide et natif pour Netlify (optionnel mais recommandé)
+
+
