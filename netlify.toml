@@ -1,11 +1,13 @@
 [build]
-  command = "npm run build"     # your build command
-  publish = "dist"              # folder to publish
-  functions = "netlify/functions" # location of your serverless functions
+  command = ""                   # no build step
+  publish = "public"             # publish your static folder
+  functions = "netlify/functions"
 
 [functions]
-  node_bundler = "esbuild"      # faster bundling (recommended)
+  node_bundler = "esbuild"
 
 [build.environment]
   NODE_VERSION = "20"
+
+
 
