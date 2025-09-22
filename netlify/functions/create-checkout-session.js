@@ -56,7 +56,8 @@ exports.handler = async (event) => {
 [build]
   functions = "netlify/functions"
 
-npm install stripe
+
+
 
 
 
