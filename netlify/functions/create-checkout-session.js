@@ -56,8 +56,9 @@ exports.handler = async (event) => {
 [build]
   functions = "netlify/functions"
 
-
-
+// package.json
+{
+  }
 
 
 
