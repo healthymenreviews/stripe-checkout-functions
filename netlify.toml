@@ -5,4 +5,10 @@
 [functions]
   node_bundler = "esbuild"  # Plus rapide et natif pour Netlify (optionnel mais recommandé)
 
+# netlify.toml
+[build]
+  command = "npm run build"
+  publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "20"
