@@ -1,66 +1,5 @@
-// /.netlify/functions/create-checkout-session.js
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-06-20',
-});
-
-export async function handler(event) {
-  try {
-    if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, body: 'Method Not Allowed' };
-    }
-
-    const { userId, appSlug } = JSON.parse(event.body || '{}');
-
-    const priceMap = {
-      peak: "price_1S6iRuGGTyzK4rFlez0W8xg",
-      warrior: "price_1S6iTgGGTyzK4rFfETVsfvHE",
-      performance: "price_1S6iImGGTyzK4rFFL4Hyl73",
-      biohacking: "price_1S6iGuGGTyzK4rFf6NsVEGfT",
-      intimacy: "price_1S6iFnGGTyzK4rFFRAWAtMRS",
-      energy: "price_1S6iDpGGTyzK4rFFsFebPohW",
-      fat: "price_1S6iAFGGTyzK4rFfVDDIifvB",
-      focus: "price_1S6i8cGGTyzK4rFfAupRMvA",
-      fasting: "price_1S6iUGGTyzK4rFfgpPUvaVF",
-      meal: "price_1S6i20GGTyzK4rFfqsRabpsL",
-      nutrition: "price_1S6hz0GGTyzK4rFFeNEzY7rE",
-      mindfulness: "price_1S6hxPGGGTyzK4rF5RvkLkvl",
-      virility: "price_1S6hs1GGTyzK4rFFw3WTNkAV",
-      sleep: "price_1S6hq6GGTyzK4rFFBbkiihKb",
-      supplement: "price_1S6hoQGGTyzK4rFFycrLOruA",
-      stress: "price_1S59u8GGTyzK4rFFgLC0Vgf1",
-      transformation: "price_1S59QbGGTyzK4rFFc2Qdb6TZ",
-      hormone: "price_1S59J3GGTyzK4rFFk4JnAewC",
-      assessment: "price_1S59DwGGTyzK4rF0RsrF70U",
-      narcissist: "price_1S59z3GGTyzK4rFFbLkxHxfI",
-      muscle: "price_1S4xwzGGTyzK4rFfKPFg6JqA"
-    };
-
-    if (!priceMap[appSlug]) {
-      return { statusCode: 400, body: 'Unknown appSlug / price not found' };
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',               // matches your current code
-      payment_method_types: ['card'],     // ok with current API
-      line_items: [{ price: priceMap[appSlug], quantity: 1 }],
-      success_url: "https://playbook.healthymenreviews.com/success",
-      cancel_url: "https://playbook.healthymenreviews.com/cancel",
-      metadata: { userId, appSlug }
-    });
-
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: session.url })
-    };
-  } catch (err) {
-    console.error(err);
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
-  }
-}
-
+// ✅ Une seule déclaration stripe (CommonJS)
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -70,27 +9,52 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body || "{}");
 
-    // Mapping produit -> Price ID (via Netlify env vars)
+    // Mapping produit -> Price ID (depuis les variables d'env Netlify)
     const priceMap = {
-      sleep: process.env.PRICE_SLEEP,
-      focus: process.env.PRICE_FOCUS,
-      nutrition: process.env.PRICE_NUTRITION,
-      muscle: process.env.PRICE_MUSCLE,
-      fasting: process.env.PRICE_FASTING,
-      // ⚡ ajoute ici tous les produits que tu as mis dans Netlify
+      peak:        process.env.PRICE_PEAK,
+      warrior:     process.env.PRICE_WARRIOR,
+      performance: process.env.PRICE_PERFORMANCE,
+      biohacking:  process.env.PRICE_BIOHACKING,
+      intimacy:    process.env.PRICE_INTIMACY,
+      energy:      process.env.PRICE_ENERGY,
+      fat:         process.env.PRICE_FAT,
+      focus:       process.env.PRICE_FOCUS,
+      fasting:     process.env.PRICE_FASTING,
+      meal:        process.env.PRICE_MEAL,
+      nutrition:   process.env.PRICE_NUTRITION,
+      mindfulness: process.env.PRICE_MINDFULNESS,
+      virility:    process.env.PRICE_VIRILITY,
+      sleep:       process.env.PRICE_SLEEP,
+      supplement:  process.env.PRICE_SUPPLEMENT,
+      stress:      process.env.PRICE_STRESS,
+      transformation: process.env.PRICE_TRANSFORMATION,
+      hormone:     process.env.PRICE_HORMONE,
+      assessment:  process.env.PRICE_ASSESSMENT,
+      narcissist:  process.env.PRICE_NARCISSIST,
+      muscle:      process.env.PRICE_MUSCLE,
     };
 
-    const priceId = priceMap[body.product];
+    const product = body.product;             // ex: "peak"
+    const priceId = priceMap[product];
+
+    // 🔎 Logs pour Netlify -> Functions -> Logs
+    console.log("📩 Body reçu:", body);
+    console.log("➡️ Produit demandé:", product);
+    console.log("➡️ PriceId sélectionné:", priceId);
+
     if (!priceId) {
       throw new Error("Invalid product or missing Price ID");
     }
 
     const session = await stripe.checkout.sessions.create({
-      mode: "payment", // ⚠️ mets "subscription" si ton Price est récurrent
+      mode: "payment", // mets "subscription" si prix récurrent dans Stripe
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.URL}/success.html`,
       cancel_url: `${process.env.URL}/cancel.html`,
+      metadata: { product },
     });
+
+    console.log("✅ Session créée:", session.id);
 
     return {
       statusCode: 200,
@@ -98,7 +62,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({ url: session.url }),
     };
   } catch (err) {
-    console.error(err);
+    console.error("❌ Erreur Stripe:", err.message);
     return {
       statusCode: 400,
       headers: { "Content-Type": "application/json" },
