@@ -1,0 +1,13 @@
+[build]
+  command = ""                   # no build step
+  publish = "public"             # publish your static folder
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+
+

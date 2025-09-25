@@ -60,6 +60,37 @@ export async function handler(event) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 }
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+exports.handler = async function (event) {
+  try {
+    // Tu peux tester avec un seul price_id pour l’instant
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "subscription", // ou "payment" si tu veux un paiement unique
+      line_items: [
+        {
+          price: "price_1S6hq6GGTyzK4rfFBbkiiHkb", 
+          quantity: 1,
+        },
+      ],
+      success_url: "https://stripe-checkout-functions.netlify.app/success",
+      cancel_url: "https://stripe-checkout-functions.netlify.app/cancel",
+    });
+
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: session.url }),
+    };
+  } catch (err) {
+    console.error(err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
+  }
+};
 
 
 
