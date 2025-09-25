@@ -1,8 +1,99 @@
 <!doctype html>
 <html>
-  <head><meta charset="utf-8"><title>Stripe Functions</title></head>
-  <body>
-    <h1>Stripe Functions are deployed</h1>
-    <p>Use the API endpoint: <code>/.netlify/functions/create-checkout-session</code></p>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <title>Stripe Checkout Test</title>
+</head>
+<body>
+  <h1>Stripe Checkout Test</h1>
+  <p>Select a product and click the button to test checkout:</p>
+
+  <label for="product">Choose a product:</label>
+  <select id="product">
+    <option value="peak">Peak</option>
+    <option value="warrior">Warrior</option>
+    <option value="performance">Performance</option>
+    <option value="biohacking">Biohacking</option>
+    <option value="intimacy">Intimacy</option>
+    <option value="energy">Energy</option>
+    <option value="fat">Fat</option>
+    <option value="focus">Focus</option>
+    <option value="fasting">Fasting</option>
+    <option value="meal">Meal</option>
+    <option value="nutrition">Nutrition</option>
+    <option value="mindfulness">Mindfulness</option>
+    <option value="virility">Virility</option>
+    <option value="sleep">Sleep</option>
+    <option value="supplement">Supplement</option>
+    <option value="stress">Stress</option>
+    <option value="transformation">Transformation</option>
+    <option value="hormone">Hormone</option>
+    <option value="assessment">Assessment</option>
+    <option value="narcissist">Narcissist</option>
+    <option value="muscle">Muscle</option>
+  </select>
+
+  <br><br>
+  <button id="checkout-btn">Buy Now</button>
+
+  <script>
+    document.getElementById("checkout-btn").addEventListener("click", async () => {
+      const appSlug = document.getElementById("product").value;
+
+      try {
+        const response = await fetch("/.netlify/functions/create-checkout-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            userId: "demo-user-123", 
+            appSlug: appSlug 
+          })
+        });
+
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url; // redirect to Stripe Checkout
+        } else {
+          alert("Error: " + JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Checkout failed!");
+      }
+    });
+  </script>
+</body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stripe Checkout Test</title>
+</head>
+<body>
+  <h1>Test Stripe Checkout</h1>
+  <button id="checkout">Pay Now</button>
+
+  <script>
+    document.getElementById("checkout").addEventListener("click", async () => {
+      try {
+        const response = await fetch("/.netlify/functions/create-checkout-session", {
+          method: "POST",
+        });
+        const data = await response.json();
+
+        if (data.url) {
+          window.location.href = data.url; // redirige vers Stripe Checkout
+        } else {
+          alert("Error: " + JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Checkout failed!");
+      }
+    });
+  </script>
+</body>
+</html>
+
