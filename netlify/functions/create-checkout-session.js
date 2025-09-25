@@ -60,22 +60,36 @@ export async function handler(event) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 }
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-exports.handler = async function (event) {
+
+exports.handler = async (event) => {
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Method Not Allowed" };
+  }
+
   try {
-    // Tu peux tester avec un seul price_id pour l’instant
+    const body = JSON.parse(event.body || "{}");
+
+    // Mapping produit -> Price ID (via Netlify env vars)
+    const priceMap = {
+      sleep: process.env.PRICE_SLEEP,
+      focus: process.env.PRICE_FOCUS,
+      nutrition: process.env.PRICE_NUTRITION,
+      muscle: process.env.PRICE_MUSCLE,
+      fasting: process.env.PRICE_FASTING,
+      // ⚡ ajoute ici tous les produits que tu as mis dans Netlify
+    };
+
+    const priceId = priceMap[body.product];
+    if (!priceId) {
+      throw new Error("Invalid product or missing Price ID");
+    }
+
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "subscription", // ou "payment" si tu veux un paiement unique
-      line_items: [
-        {
-          price: "price_1S6hq6GGTyzK4rfFBbkiiHkb", 
-          quantity: 1,
-        },
-      ],
-      success_url: "https://stripe-checkout-functions.netlify.app/success",
-      cancel_url: "https://stripe-checkout-functions.netlify.app/cancel",
+      mode: "payment", // ⚠️ mets "subscription" si ton Price est récurrent
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${process.env.URL}/success.html`,
+      cancel_url: `${process.env.URL}/cancel.html`,
     });
 
     return {
@@ -86,11 +100,14 @@ exports.handler = async function (event) {
   } catch (err) {
     console.error(err);
     return {
-      statusCode: 500,
+      statusCode: 400,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ error: err.message }),
     };
   }
 };
+
+
 
 
 
